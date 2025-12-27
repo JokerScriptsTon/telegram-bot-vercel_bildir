@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Futbol Bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glow {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="glass rounded-2xl p-6 mb-6 glow">
+            <h1 class="text-4xl font-bold text-white mb-2">⚽ Admin Panel</h1>
+            <p class="text-white/80">Veritabanı Yönetimi & Takım Kontrolü</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="glass rounded-xl p-6">
+                <div class="text-white/60 text-sm mb-1">Toplam Takım</div>
+                <div class="text-3xl font-bold text-white" id="totalTeams">-</div>
+            </div>
+            <div class="glass rounded-xl p-6">
+                <div class="text-white/60 text-sm mb-1">Toplam Kullanıcı</div>
+                <div class="text-3xl font-bold text-white" id="totalUsers">-</div>
+            </div>
+            <div class="glass rounded-xl p-6">
+                <div class="text-white/60 text-sm mb-1">Takip Edilen</div>
+                <div class="text-3xl font-bold text-white" id="totalFollows">-</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="glass rounded-2xl p-6 mb-6">
+            <div class="flex gap-4 mb-6 border-b border-white/20 pb-4">
+                <button onclick="switchTab('database')" id="tab-database"
+                    class="px-4 py-2 rounded-lg bg-white/20 text-white font-semibold">
+                    📊 Veritabanı
+                </button>
+                <button onclick="switchTab('users')" id="tab-users"
+                    class="px-4 py-2 rounded-lg text-white/60 hover:bg-white/10">
+                    👥 Kullanıcılar
+                </button>
+                <button onclick="switchTab('add')" id="tab-add"
+                    class="px-4 py-2 rounded-lg text-white/60 hover:bg-white/10">
+                    ➕ Takım Ekle
+                </button>
+                <button onclick="switchTab('sync')" id="tab-sync"
+                    class="px-4 py-2 rounded-lg text-white/60 hover:bg-white/10">
+                    🔄 Senkronizasyon
+                </button>
+            </div>
+
+            <!-- Database Tab -->
+            <div id="content-database" class="tab-content">
+                <div class="mb-4">
+                    <input type="text" id="searchTeams" placeholder="Takım ara..."
+                        class="w-full px-4 py-3 rounded-lg bg-white/10 text-white placeholder-white/50 border border-white/20 focus:outline-none focus:border-white/40">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-white">
+                        <thead>
+                            <tr class="border-b border-white/20">
+                                <th class="text-left p-3">Logo</th>
+                                <th class="text-left p-3">Takım</th>
+                                <th class="text-left p-3">Lig</th>
+                                <th class="text-left p-3">Ülke</th>
+                                <th class="text-left p-3">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamsTable">
+                            <tr>
+                                <td colspan="5" class="text-center p-8 text-white/60">Yükleniyor...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="content-users" class="tab-content hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-white">
+                        <thead>
+                            <tr class="border-b border-white/20">
+                                <th class="text-left p-3">User ID</th>
+                                <th class="text-left p-3">İsim</th>
+                                <th class="text-left p-3">Kayıt Tarihi</th>
+                                <th class="text-left p-3">Takım Sayısı</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="4" class="text-center p-8 text-white/60">Yükleniyor...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Add Team Tab -->
+            <div id="content-add" class="tab-content hidden">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-white mb-2 block">API'den Takım Ara</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="apiSearch" placeholder="Takım adı girin..."
+                                class="flex-1 px-4 py-3 rounded-lg bg-white/10 text-white placeholder-white/50 border border-white/20 focus:outline-none focus:border-white/40">
+                            <button onclick="searchFromAPI()"
+                                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold">
+                                Ara
+                            </button>
+                        </div>
+                    </div>
+                    <div id="apiResults" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- Sync Tab -->
+            <div id="content-sync" class="tab-content hidden">
+                <div class="space-y-4">
+                    <div class="bg-yellow-500/20 border border-yellow-500/50 rounded-lg p-4 text-white">
+                        <strong>⚠️ Dikkat:</strong> Bu işlem 500+ takımı veritabanına ekleyecektir. İşlem 30-60 saniye
+                        sürebilir.
+                    </div>
+                    <button onclick="syncDatabase()" id="syncBtn"
+                        class="w-full px-6 py-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg">
+                        🔄 Veritabanını Senkronize Et
+                    </button>
+                    <div id="syncStatus" class="text-white"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allTeams = [];
+        let allUsers = [];
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-"]').forEach(el => {
+                el.classList.remove('bg-white/20', 'font-semibold');
+                el.classList.add('text-white/60');
+            });
+
+            document.getElementById(`content-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.add('bg-white/20', 'font-semibold');
+            document.getElementById(`tab-${tab}`).classList.remove('text-white/60');
+        }
+
+        // Load data
+        async function loadData() {
+            try {
+                // Load teams from cache
+                const teamsRes = await fetch('/api/admin/get-cached-teams');
+                const teamsData = await teamsRes.json();
+                allTeams = teamsData.teams || [];
+                document.getElementById('totalTeams').textContent = allTeams.length;
+                renderTeams(allTeams);
+
+                // Load users
+                const usersRes = await fetch('/api/admin/get-users');
+                const usersData = await usersRes.json();
+                allUsers = usersData.users || [];
+                document.getElementById('totalUsers').textContent = allUsers.length;
+                renderUsers(allUsers);
+
+                // Load stats
+                const statsRes = await fetch('/api/admin/stats');
+                const statsData = await statsRes.json();
+                document.getElementById('totalFollows').textContent = statsData.totalFollows || 0;
+            } catch (err) {
+                console.error('Load error:', err);
+            }
+        }
+
+        // Render teams
+        function renderTeams(teams) {
+            const tbody = document.getElementById('teamsTable');
+            if (teams.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-white/60">Takım bulunamadı</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = teams.map(team => `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="p-3">
+                        <img src="${team.logo || ''}" alt="${team.name}" class="w-10 h-10 object-contain" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><text y=%2230%22 font-size=%2230%22>⚽</text></svg>'">
+                    </td>
+                    <td class="p-3 font-semibold">${team.name}</td>
+                    <td class="p-3 text-sm text-white/70">${team.league || 'N/A'}</td>
+                    <td class="p-3 text-sm text-white/70">${team.country || 'N/A'}</td>
+                    <td class="p-3">
+                        <button onclick="deleteTeam('${team.id}')" class="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded">
+                            Sil
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render users
+        function renderUsers(users) {
+            const tbody = document.getElementById('usersTable');
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-white/60">Kullanıcı bulunamadı</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="p-3 font-mono text-sm">${user.userId}</td>
+                    <td class="p-3">${user.name || 'N/A'}</td>
+                    <td class="p-3 text-sm text-white/70">${user.registeredAt || 'N/A'}</td>
+                    <td class="p-3 text-sm text-white/70">${user.teamCount || 0}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Search teams
+        document.getElementById('searchTeams').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = allTeams.filter(t =>
+                t.name.toLowerCase().includes(query) ||
+                (t.league && t.league.toLowerCase().includes(query))
+            );
+            renderTeams(filtered);
+        });
+
+        // Search from API
+        async function searchFromAPI() {
+            const query = document.getElementById('apiSearch').value;
+            if (!query || query.length < 2) return;
+
+            const resultsDiv = document.getElementById('apiResults');
+            resultsDiv.innerHTML = '<div class="text-white/60">Aranıyor...</div>';
+
+            try {
+                const res = await fetch(`/api/webapp/search-teams?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+                const teams = data.teams || [];
+
+                if (teams.length === 0) {
+                    resultsDiv.innerHTML = '<div class="text-white/60">Sonuç bulunamadı</div>';
+                    return;
+                }
+
+                resultsDiv.innerHTML = teams.map(team => `
+                    <div class="glass rounded-lg p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <img src="${team.logo || ''}" alt="${team.name}" class="w-12 h-12 object-contain" onerror="this.textContent='⚽'">
+                            <div>
+                                <div class="text-white font-semibold">${team.name}</div>
+                                <div class="text-white/60 text-sm">${team.country || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <button onclick="addTeamToDB('${team.id}', '${team.name.replace(/'/g, "\\'")}', '${team.logo || ''}', '${team.country || ''}')" 
+                            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">
+                            Ekle
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                resultsDiv.innerHTML = '<div class="text-red-300">Hata oluştu</div>';
+            }
+        }
+
+        // Add team to DB
+        async function addTeamToDB(id, name, logo, country) {
+            try {
+                const res = await fetch('/api/admin/add-team', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, logo, country, league: 'Manual' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Takım eklendi!');
+                    loadData();
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // Delete team
+        async function deleteTeam(id) {
+            if (!confirm('Bu takımı silmek istediğinizden emin misiniz?')) return;
+
+            try {
+                const res = await fetch('/api/admin/delete-team', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Takım silindi!');
+                    loadData();
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // Sync database
+        async function syncDatabase() {
+            const btn = document.getElementById('syncBtn');
+            const status = document.getElementById('syncStatus');
+
+            btn.disabled = true;
+            btn.textContent = '⏳ Senkronize ediliyor...';
+            status.textContent = 'İşlem başladı, lütfen bekleyin...';
+
+            try {
+                const res = await fetch('/api/admin/sync-database');
+                const data = await res.json();
+
+                if (data.success) {
+                    status.innerHTML = `<div class="bg-green-500/20 border border-green-500/50 rounded-lg p-4">
+                        ✅ Başarılı! ${data.count} takım eklendi.
+                    </div>`;
+                    setTimeout(() => loadData(), 2000);
+                } else {
+                    status.innerHTML = `<div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+                        ❌ Hata: ${data.error}
+                    </div>`;
+                }
+            } catch (err) {
+                status.innerHTML = `<div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4">
+                    ❌ Hata: ${err.message}
+                </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Veritabanını Senkronize Et';
+            }
+        }
+
+        // Initial load
+        loadData();
+    </script>
+</body>
+
+</html>

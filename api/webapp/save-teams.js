@@ -24,18 +24,18 @@ export default async function handler(req, res) {
 
         // Mevcut takımları al
         const currentTeams = await getUserTeams(userId);
-        const currentTeamIds = currentTeams.map(t => parseInt(t.teamId));
-        const newTeamIds = teams.map(t => t.id);
+        const currentTeamIds = currentTeams.map(t => parseInt(t.id)); // 'id' kullan, 'teamId' değil
+        const newTeamIds = teams.map(t => parseInt(t.id));
 
         // Çıkarılacak takımlar
-        const teamsToRemove = currentTeams.filter(t => !newTeamIds.includes(parseInt(t.teamId)));
+        const teamsToRemove = currentTeams.filter(t => !newTeamIds.includes(parseInt(t.id)));
         for (const team of teamsToRemove) {
-            await removeTeam(userId, team.teamId);
+            await removeTeam(userId, team.id);
         }
 
         // Eklenecek veya güncellenecek takımlar
         for (const team of teams) {
-            const exists = currentTeamIds.includes(team.id);
+            const exists = currentTeamIds.includes(parseInt(team.id));
 
             if (!exists) {
                 // Yeni takım ekle
