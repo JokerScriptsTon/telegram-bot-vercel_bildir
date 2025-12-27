@@ -1,0 +1,5 @@
+{
+  "name": "GollApp - Futbol Takip",
+  "description": "Telegram tabanlı futbol takımı takip ve favori yönetimi uygulaması. Favori takımlarınızdan anlık yapay zeka destekli bildirimler alın.",
+  "requestFramePermissions": []
+}
