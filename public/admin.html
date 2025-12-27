@@ -104,11 +104,12 @@
                                 <th class="text-left p-3">İsim</th>
                                 <th class="text-left p-3">Kayıt Tarihi</th>
                                 <th class="text-left p-3">Takım Sayısı</th>
+                                <th class="text-left p-3">İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="usersTable">
                             <tr>
-                                <td colspan="4" class="text-center p-8 text-white/60">Yükleniyor...</td>
+                                <td colspan="5" class="text-center p-8 text-white/60">Yükleniyor...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -300,7 +301,7 @@
         function renderUsers(users) {
             const tbody = document.getElementById('usersTable');
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-8 text-white/60">Kullanıcı bulunamadı</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-white/60">Kullanıcı bulunamadı</td></tr>';
                 return;
             }
 
@@ -310,6 +311,18 @@
                     <td class="p-3">${user.name || 'N/A'}</td>
                     <td class="p-3 text-sm text-white/70">${user.registeredAt || 'N/A'}</td>
                     <td class="p-3 text-sm text-white/70">${user.teamCount || 0}</td>
+                    <td class="p-3">
+                        <div class="flex gap-2">
+                            <button onclick="openUserEditModal('${user.userId}', '${(user.name || '').replace(/'/g, "\\'")}', '${(user.username || '').replace(/'/g, "\\'")}')" 
+                                class="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/40 text-blue-200 rounded text-sm">
+                                Düzenle
+                            </button>
+                            <button onclick="deleteUser('${user.userId}')" 
+                                class="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded text-sm">
+                                Sil
+                            </button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -471,6 +484,72 @@
                 if (data.success) {
                     alert('Takım güncellendi!');
                     closeEditModal();
+                    loadData();
+                } else {
+                    alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // User edit modal functions
+        let currentEditUserId = null;
+
+        function openUserEditModal(userId, name, username) {
+            currentEditUserId = userId;
+            document.getElementById('editUserId').value = userId;
+            document.getElementById('editUserName').value = name;
+            document.getElementById('editUserUsername').value = username;
+            document.getElementById('editUserModal').classList.remove('hidden');
+            document.getElementById('editUserModal').classList.add('flex');
+        }
+
+        function closeUserEditModal() {
+            currentEditUserId = null;
+            document.getElementById('editUserModal').classList.add('hidden');
+            document.getElementById('editUserModal').classList.remove('flex');
+        }
+
+        async function saveUserEdit() {
+            if (!currentEditUserId) return;
+
+            const name = document.getElementById('editUserName').value;
+            const username = document.getElementById('editUserUsername').value;
+
+            try {
+                const res = await fetch('/api/admin/update-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: currentEditUserId, name, username })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Kullanıcı güncellendi!');
+                    closeUserEditModal();
+                    loadData();
+                } else {
+                    alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (!confirm('Bu kullanıcıyı ve tüm takım takiplerini silmek istediğinizden emin misiniz?')) return;
+
+            try {
+                const res = await fetch('/api/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Kullanıcı silindi!');
                     loadData();
                 } else {
                     alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
