@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Takım Ayarları</title>
+    <title>Takım Yönetimi</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -14,192 +14,257 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--tg-theme-bg-color, #0f0f0f);
+            color: var(--tg-theme-text-color, #ffffff);
+            padding: 0;
             padding-bottom: 80px;
+            overflow-x: hidden;
         }
 
         .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 24px 20px;
             text-align: center;
-            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: 28px;
+            font-weight: 700;
             margin-bottom: 8px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .header p {
-            color: var(--tg-theme-hint-color, #999);
             font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .search-section {
+            margin-bottom: 24px;
         }
 
         .search-box {
-            margin-bottom: 24px;
+            position: relative;
         }
 
         .search-input {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--tg-theme-hint-color, #ddd);
-            border-radius: 12px;
+            padding: 16px 20px 16px 50px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
             font-size: 16px;
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            color: var(--tg-theme-text-color, #000);
+            background: var(--tg-theme-secondary-bg-color, #1a1a1a);
+            color: var(--tg-theme-text-color, #fff);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            opacity: 0.5;
         }
 
         .section {
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
-        .section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--tg-theme-hint-color, #999);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .team-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .team-card {
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 12px;
-            padding: 16px;
+        .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .team-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .team-card {
+            background: var(--tg-theme-secondary-bg-color, #1a1a1a);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
         .team-card:active {
             transform: scale(0.98);
         }
 
-        .team-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
+        .team-card.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
         }
 
-        .team-icon {
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
+        .team-logo-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
         }
 
         .team-logo {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             object-fit: contain;
-            border-radius: 4px;
+        }
+
+        .team-icon {
+            font-size: 32px;
+        }
+
+        .team-info {
+            flex: 1;
+            min-width: 0;
         }
 
         .team-name {
             font-size: 16px;
-            font-weight: 500;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .team-country {
-            font-size: 12px;
-            color: var(--tg-theme-hint-color, #999);
+            font-size: 13px;
+            opacity: 0.6;
         }
 
-        .add-btn,
-        .remove-btn {
-            padding: 8px 16px;
-            border-radius: 8px;
+        .team-action {
+            flex-shrink: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 12px;
             border: none;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-btn {
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
-        }
-
-        .remove-btn {
-            background: #ff3b30;
-            color: #ffffff;
-        }
-
-        .selected-team-card {
-            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-
-        .selected-team-header {
-            display: flex;
+            transition: all 0.3s ease;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.95);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .selected-teams-section {
+            background: var(--tg-theme-secondary-bg-color, #1a1a1a);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
         }
 
         .notification-options {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-top: 12px;
         }
 
         .notif-btn {
-            flex: 1;
-            padding: 10px;
-            border-radius: 8px;
-            border: 2px solid var(--tg-theme-hint-color, #ddd);
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
             background: transparent;
-            color: var(--tg-theme-text-color, #000);
+            color: var(--tg-theme-text-color, #fff);
             font-size: 13px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         .notif-btn.active {
-            border-color: var(--tg-theme-button-color, #3390ec);
-            background: var(--tg-theme-button-color, #3390ec);
-            color: var(--tg-theme-button-text-color, #ffffff);
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
         }
 
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
-            color: var(--tg-theme-hint-color, #999);
+            padding: 48px 20px;
+            opacity: 0.5;
         }
 
-        .empty-state-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
         }
 
         .loading {
             text-align: center;
-            padding: 20px;
-            color: var(--tg-theme-hint-color, #999);
+            padding: 32px;
         }
 
         .spinner {
-            border: 3px solid var(--tg-theme-hint-color, #ddd);
-            border-top: 3px solid var(--tg-theme-button-color, #3390ec);
+            border: 3px solid rgba(102, 126, 234, 0.1);
+            border-top: 3px solid #667eea;
             border-radius: 50%;
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
+            margin: 0 auto 16px;
         }
 
         @keyframes spin {
@@ -212,44 +277,80 @@
             }
         }
 
-        .search-results {
-            max-height: 300px;
-            overflow-y: auto;
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 16px 0;
+        }
+
+        .popular-badge {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
         }
     </style>
 </head>
 
 <body>
     <div class="header">
-        <h1>⚽ Takım Ayarları</h1>
+        <h1>⚽ Takım Yönetimi</h1>
         <p>Favori takımlarını seç ve bildirimleri ayarla</p>
     </div>
 
-    <div class="search-box">
-        <input type="text" class="search-input" id="searchInput" placeholder="🔍 Takım ara...">
-    </div>
-
-    <div id="searchResults" class="section" style="display: none;">
-        <div class="section-title">Arama Sonuçları</div>
-        <div class="search-results team-list" id="searchResultsList"></div>
-    </div>
-
-    <div class="section">
-        <div class="section-title">📋 Popüler Takımlar</div>
-        <div class="team-list" id="popularTeams">
-            <div class="loading">
-                <div class="spinner"></div>
-                <div>Yükleniyor...</div>
+    <div class="container">
+        <!-- Arama -->
+        <div class="search-section">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Takım ara...">
             </div>
         </div>
-    </div>
 
-    <div class="section">
-        <div class="section-title">✅ Seçili Takımlar (<span id="selectedCount">0</span>)</div>
-        <div id="selectedTeams">
-            <div class="empty-state">
-                <div class="empty-state-icon">📋</div>
-                <div>Henüz takım seçmediniz</div>
+        <!-- Arama Sonuçları -->
+        <div id="searchResults" class="section" style="display: none;">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>🔍</span>
+                    <span>Arama Sonuçları</span>
+                </div>
+            </div>
+            <div class="team-grid" id="searchResultsList"></div>
+        </div>
+
+        <!-- Seçili Takımlar -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>⭐</span>
+                    <span>Favorilerim</span>
+                    <span class="badge" id="selectedCount">0</span>
+                </div>
+            </div>
+            <div id="selectedTeams">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <div>Henüz takım eklemediniz</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popüler Takımlar -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <span>🔥</span>
+                    <span>Popüler Takımlar</span>
+                </div>
+            </div>
+            <div class="team-grid" id="popularTeams">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div>Yükleniyor...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -257,54 +358,52 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.MainButton.setText('Kaydet');
+        tg.MainButton.setText('💾 Kaydet');
         tg.MainButton.show();
 
-        const user = tg.initDataUnsafe.user;
+        const user = tg.initDataUnsafe.user || { id: 123456 };
         let selectedTeams = [];
         let searchTimeout;
 
         const POPULAR_TEAMS = [
-            { id: 645, name: 'Beşiktaş', icon: '🦅', country: 'Turkey' },
-            { id: 548, name: 'Galatasaray', icon: '🦁', country: 'Turkey' },
-            { id: 610, name: 'Fenerbahçe', icon: '🐦', country: 'Turkey' },
-            { id: 609, name: 'Trabzonspor', icon: '⚡', country: 'Turkey' },
-            { id: 635, name: 'Başakşehir', icon: '🔷', country: 'Turkey' }
+            { id: '133610', name: 'Beşiktaş', icon: '🦅', country: 'Turkey', logo: 'https://www.thesportsdb.com/images/media/team/badge/rqwrrt1420567462.png' },
+            { id: '133612', name: 'Galatasaray', icon: '🦁', country: 'Turkey', logo: 'https://www.thesportsdb.com/images/media/team/badge/vwxwqt1420567354.png' },
+            { id: '133611', name: 'Fenerbahçe', icon: '🐦', country: 'Turkey', logo: 'https://www.thesportsdb.com/images/media/team/badge/xyqxqt1420567397.png' },
+            { id: '133613', name: 'Trabzonspor', icon: '⚡', country: 'Turkey', logo: 'https://www.thesportsdb.com/images/media/team/badge/sxqxvt1420567531.png' },
+            { id: '133759', name: 'Başakşehir', icon: '🔷', country: 'Turkey', logo: 'https://www.thesportsdb.com/images/media/team/badge/zxmrau1521814626.png' }
         ];
 
-        // Popüler takımları göster
         function renderPopularTeams() {
             const container = document.getElementById('popularTeams');
-            container.innerHTML = POPULAR_TEAMS.map(team => createTeamCard(team)).join('');
+            container.innerHTML = POPULAR_TEAMS.map(team => createTeamCard(team, true)).join('');
         }
 
-        // Takım kartı oluştur
-        function createTeamCard(team) {
+        function createTeamCard(team, isPopular = false) {
             const isSelected = selectedTeams.some(t => t.id === team.id);
-            const teamIcon = team.logo
-                ? `<img src="${team.logo}" class="team-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="team-icon" style="display:none">${team.icon || '⚽'}</div>`
+            const logoHtml = team.logo
+                ? `<img src="${team.logo}" class="team-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" crossorigin="anonymous">
+                   <div class="team-icon" style="display:none">${team.icon || '⚽'}</div>`
                 : `<div class="team-icon">${team.icon || '⚽'}</div>`;
 
             return `
-                <div class="team-card">
-                    <div class="team-info">
-                        ${teamIcon}
-                        <div>
-                            <div class="team-name">${team.name}</div>
-                            <div class="team-country">${team.country}</div>
-                        </div>
+                <div class="team-card ${isSelected ? 'selected' : ''}" onclick="toggleTeam('${team.id}', '${team.name}', '${team.icon || '⚽'}', '${team.country}', '${team.logo || ''}')">
+                    <div class="team-logo-wrapper">
+                        ${logoHtml}
                     </div>
-                    <button 
-                        class="${isSelected ? 'remove-btn' : 'add-btn'}" 
-                        onclick="toggleTeam(${team.id}, '${team.name}', '${team.icon || '⚽'}', '${team.country}', '${team.logo || ''}')"
-                    >
-                        ${isSelected ? 'Çıkar' : 'Ekle'}
-                    </button>
+                    <div class="team-info">
+                        <div class="team-name">${team.name}</div>
+                        <div class="team-country">${team.country}</div>
+                    </div>
+                    <div class="team-action">
+                        ${isSelected
+                    ? '<button class="btn btn-danger" onclick="event.stopPropagation()">❌</button>'
+                    : '<button class="btn btn-primary" onclick="event.stopPropagation()">➕</button>'
+                }
+                    </div>
                 </div>
             `;
         }
 
-        // Takım ekle/çıkar
         function toggleTeam(id, name, icon, country, logo = '') {
             const index = selectedTeams.findIndex(t => t.id === id);
 
@@ -326,7 +425,6 @@
             updateSearchResults();
         }
 
-        // Seçili takımları göster
         function renderSelectedTeams() {
             const container = document.getElementById('selectedTeams');
             const count = document.getElementById('selectedCount');
@@ -335,45 +433,53 @@
             if (selectedTeams.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="empty-state-icon">📋</div>
-                        <div>Henüz takım seçmediniz</div>
+                        <div class="empty-icon">📋</div>
+                        <div>Henüz takım eklemediniz</div>
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = selectedTeams.map(team => `
-                <div class="selected-team-card">
-                    <div class="selected-team-header">
-                        <div class="team-info">
-                            <div class="team-icon">${team.icon}</div>
-                            <div>
-                                <div class="team-name">${team.name}</div>
+            container.innerHTML = selectedTeams.map(team => {
+                const logoHtml = team.logo
+                    ? `<img src="${team.logo}" class="team-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" crossorigin="anonymous">
+                       <div class="team-icon" style="display:none">${team.icon}</div>`
+                    : `<div class="team-icon">${team.icon}</div>`;
+
+                return `
+                    <div class="selected-teams-section">
+                        <div class="team-card">
+                            <div class="team-logo-wrapper">
+                                ${logoHtml}
                             </div>
+                            <div class="team-info">
+                                <div class="team-name">${team.name}</div>
+                                <div class="team-country">${team.country}</div>
+                            </div>
+                            <button class="btn btn-danger" onclick="toggleTeam('${team.id}', '${team.name}', '${team.icon}', '${team.country}', '${team.logo}')">
+                                🗑️
+                            </button>
                         </div>
-                        <button class="remove-btn" onclick="toggleTeam(${team.id}, '${team.name}', '${team.icon}', '${team.country}')">
-                            Sil
-                        </button>
+                        <div class="divider"></div>
+                        <div class="notification-options">
+                            <button 
+                                class="notif-btn ${team.notificationType === 'all' ? 'active' : ''}"
+                                onclick="setNotificationType('${team.id}', 'all')"
+                            >
+                                🔔 Tüm Bildirimler
+                            </button>
+                            <button 
+                                class="notif-btn ${team.notificationType === 'goals_only' ? 'active' : ''}"
+                                onclick="setNotificationType('${team.id}', 'goals_only')"
+                            >
+                                ⚽ Sadece Goller
+                            </button>
+                        </div>
                     </div>
-                    <div class="notification-options">
-                        <button 
-                            class="notif-btn ${team.notificationType === 'all' ? 'active' : ''}"
-                            onclick="setNotificationType(${team.id}, 'all')"
-                        >
-                            🔔 Tüm Bildirimler
-                        </button>
-                        <button 
-                            class="notif-btn ${team.notificationType === 'goals_only' ? 'active' : ''}"
-                            onclick="setNotificationType(${team.id}, 'goals_only')"
-                        >
-                            ⚽ Sadece Goller
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        // Bildirim tipini ayarla
         function setNotificationType(teamId, type) {
             const team = selectedTeams.find(t => t.id === teamId);
             if (team) {
@@ -382,7 +488,6 @@
             }
         }
 
-        // Arama
         document.getElementById('searchInput').addEventListener('input', (e) => {
             clearTimeout(searchTimeout);
             const query = e.target.value.trim();
@@ -409,10 +514,10 @@
                 if (data.teams && data.teams.length > 0) {
                     resultsList.innerHTML = data.teams.map(team => createTeamCard(team)).join('');
                 } else {
-                    resultsList.innerHTML = '<div class="empty-state"><div>Sonuç bulunamadı</div></div>';
+                    resultsList.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><div>Sonuç bulunamadı</div></div>';
                 }
             } catch (error) {
-                resultsList.innerHTML = '<div class="empty-state"><div>Hata oluştu</div></div>';
+                resultsList.innerHTML = '<div class="empty-state"><div class="empty-icon">❌</div><div>Hata oluştu</div></div>';
             }
         }
 
@@ -423,7 +528,6 @@
             }
         }
 
-        // Kaydet butonu
         tg.MainButton.onClick(async () => {
             tg.MainButton.showProgress();
 
@@ -451,7 +555,6 @@
             }
         });
 
-        // Kullanıcının mevcut takımlarını yükle
         async function loadUserTeams() {
             try {
                 const response = await fetch(`/api/webapp/user-teams?userId=${user.id}`);
@@ -466,7 +569,6 @@
             }
         }
 
-        // Başlangıç
         renderPopularTeams();
         loadUserTeams();
     </script>
