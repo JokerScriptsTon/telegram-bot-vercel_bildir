@@ -2,7 +2,7 @@
  * Web App API - Takımları Kaydet
  */
 
-import { addTeam, removeTeam, getUserTeams, updateNotificationType } from '../../lib/user-teams.js';
+import { addTeam, removeTeam, getUserTeams, updateNotificationSettings } from '../../lib/user-teams.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -33,10 +33,10 @@ export default async function handler(req, res) {
 
             if (!exists) {
                 // Yeni takım ekle
-                await addTeam(userId, team.id, team.name, team.notificationType || 'all');
+                await addTeam(userId, team.id, team.name, team.settings);
             } else {
-                // Bildirim tipini güncelle
-                await updateNotificationType(userId, team.id, team.notificationType || 'all');
+                // Bildirim ayarlarını güncelle
+                await updateNotificationSettings(userId, team.id, team.settings);
             }
         }
 

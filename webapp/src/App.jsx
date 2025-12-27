@@ -99,13 +99,30 @@ function App() {
         if (exists) {
             setSelectedTeams(prev => prev.filter(t => t.id !== team.id));
         } else {
-            setSelectedTeams(prev => [...prev, { ...team, notificationType: 'all' }]);
+            setSelectedTeams(prev => [...prev, {
+                ...team,
+                settings: {
+                    before1h: true,
+                    before15m: true,
+                    matchStart: true,
+                    goals: true,
+                    cards: true,
+                    halfTime: true,
+                    fullTime: true
+                }
+            }]);
             window.Telegram?.WebApp?.HapticFeedback?.notificationOccurred('success');
         }
     };
 
-    const setNotifType = (id, type) => {
-        setSelectedTeams(prev => prev.map(t => t.id === id ? { ...t, notificationType: type } : t));
+    const toggleTeamSetting = (teamId, settingKey) => {
+        setSelectedTeams(prev => prev.map(t => {
+            if (t.id === teamId) {
+                const newSettings = { ...t.settings, [settingKey]: !t.settings?.[settingKey] };
+                return { ...t, settings: newSettings };
+            }
+            return t;
+        }));
         window.Telegram?.WebApp?.HapticFeedback?.impactOccurred('light');
     };
 
@@ -165,7 +182,7 @@ function App() {
                     <div className="space-y-4">
                         {selectedTeams.length > 0 ? (
                             selectedTeams.map(team => (
-                                <div key={team.id} className="glass-premium rounded-[24px] overflow-hidden">
+                                <div key={team.id} className="glass-premium rounded-[24px] overflow-hidden transition-all duration-300">
                                     <div className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden relative">
@@ -191,19 +208,52 @@ function App() {
                                             <Trash2 className="w-5 h-5" />
                                         </button>
                                     </div>
-                                    <div className="flex gap-1 p-1 bg-white/5 border-t border-white/5">
-                                        <button
-                                            onClick={() => setNotifType(team.id, 'all')}
-                                            className={`flex-1 py-3 text-xs font-semibold rounded-2xl transition-all ${team.notificationType === 'all' ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-40'}`}
-                                        >
-                                            Tüm Bildirimler
-                                        </button>
-                                        <button
-                                            onClick={() => setNotifType(team.id, 'goals')}
-                                            className={`flex-1 py-3 text-xs font-semibold rounded-2xl transition-all ${team.notificationType === 'goals' ? 'bg-indigo-600 text-white shadow-lg' : 'opacity-40'}`}
-                                        >
-                                            Sadece Goller
-                                        </button>
+
+                                    {/* Granular Notification Settings */}
+                                    <div className="px-4 pb-4 space-y-3 border-t border-white/5 pt-4">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+                                            <Bell className="w-3 h-3" />
+                                            <span>Bildirim Ayarları</span>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <NotificationToggle
+                                                label="1 Saat Önce"
+                                                active={team.settings?.before1h}
+                                                onClick={() => toggleTeamSetting(team.id, 'before1h')}
+                                            />
+                                            <NotificationToggle
+                                                label="15 Dakika Önce"
+                                                active={team.settings?.before15m}
+                                                onClick={() => toggleTeamSetting(team.id, 'before15m')}
+                                            />
+                                            <NotificationToggle
+                                                label="Maç Başlayınca"
+                                                active={team.settings?.matchStart}
+                                                onClick={() => toggleTeamSetting(team.id, 'matchStart')}
+                                            />
+                                            <NotificationToggle
+                                                label="Goller"
+                                                active={team.settings?.goals}
+                                                onClick={() => toggleTeamSetting(team.id, 'goals')}
+                                            />
+                                            <NotificationToggle
+                                                label="Kartlar"
+                                                active={team.settings?.cards}
+                                                onClick={() => toggleTeamSetting(team.id, 'cards')}
+                                            />
+                                            <NotificationToggle
+                                                label="Devre Arası"
+                                                active={team.settings?.halfTime}
+                                                onClick={() => toggleTeamSetting(team.id, 'halfTime')}
+                                            />
+                                            <NotificationToggle
+                                                label="Maç Sonu"
+                                                active={team.settings?.fullTime}
+                                                onClick={() => toggleTeamSetting(team.id, 'fullTime')}
+                                                className="col-span-2"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -263,6 +313,20 @@ function App() {
                 </section>
             </div>
         </div>
+    );
+}
+
+function NotificationToggle({ label, active, onClick, className = '' }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`flex items-center justify-between p-3 rounded-2xl text-[11px] font-semibold transition-all duration-200 border ${active ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-100 shadow-inner' : 'bg-white/5 border-white/5 text-slate-500 opacity-60'} ${className}`}
+        >
+            <span>{label}</span>
+            <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${active ? 'bg-indigo-500' : 'bg-white/10'}`}>
+                {active && <Check className="w-2.5 h-2.5 text-white" />}
+            </div>
+        </button>
     );
 }
 
