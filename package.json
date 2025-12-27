@@ -4,7 +4,8 @@
   "description": "Telegram Bot hosted on Vercel with Google Sheets database",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "vercel dev",
+    "build": "cd webapp && npm install && npm run build"
   },
   "dependencies": {
     "axios": "^1.6.2",

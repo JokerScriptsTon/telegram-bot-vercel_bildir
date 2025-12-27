@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-tg-bg text-tg-text antialiased;
+  }
+}
+
+.glass {
+  @apply bg-black/5 backdrop-blur-md border border-white/10;
+}
+
+.glass-premium {
+  @apply bg-white/5 backdrop-blur-xl border border-white/20 shadow-2xl;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+}
