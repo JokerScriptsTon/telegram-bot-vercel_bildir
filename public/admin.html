@@ -170,26 +170,53 @@
         // Load data
         async function loadData() {
             try {
+                console.log('Loading data...');
+
                 // Load teams from cache
+                console.log('Fetching teams...');
                 const teamsRes = await fetch('/api/admin/get-cached-teams');
+                console.log('Teams response status:', teamsRes.status);
+
+                if (!teamsRes.ok) {
+                    throw new Error(`Teams API returned ${teamsRes.status}`);
+                }
+
                 const teamsData = await teamsRes.json();
+                console.log('Teams data:', teamsData);
+
                 allTeams = teamsData.teams || [];
+                console.log(`Loaded ${allTeams.length} teams`);
+
                 document.getElementById('totalTeams').textContent = allTeams.length;
                 renderTeams(allTeams);
 
                 // Load users
+                console.log('Fetching users...');
                 const usersRes = await fetch('/api/admin/get-users');
-                const usersData = await usersRes.json();
-                allUsers = usersData.users || [];
-                document.getElementById('totalUsers').textContent = allUsers.length;
-                renderUsers(allUsers);
+                console.log('Users response status:', usersRes.status);
+
+                if (usersRes.ok) {
+                    const usersData = await usersRes.json();
+                    console.log('Users data:', usersData);
+                    allUsers = usersData.users || [];
+                    document.getElementById('totalUsers').textContent = allUsers.length;
+                    renderUsers(allUsers);
+                } else {
+                    console.error('Failed to load users');
+                }
 
                 // Load stats
+                console.log('Fetching stats...');
                 const statsRes = await fetch('/api/admin/stats');
-                const statsData = await statsRes.json();
-                document.getElementById('totalFollows').textContent = statsData.totalFollows || 0;
+                if (statsRes.ok) {
+                    const statsData = await statsRes.json();
+                    document.getElementById('totalFollows').textContent = statsData.totalFollows || 0;
+                }
+
+                console.log('Data loading complete');
             } catch (err) {
                 console.error('Load error:', err);
+                alert('Veri yükleme hatası: ' + err.message);
             }
         }
 
@@ -197,14 +224,20 @@
         function renderTeams(teams) {
             const tbody = document.getElementById('teamsTable');
             if (teams.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-white/60">Takım bulunamadı</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-white/60">Takım bulunamadı. Önce veritabanını senkronize edin.</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = teams.map(team => `
+            tbody.innerHTML = teams.map(team => {
+                // URL temizleme
+                const cleanLogo = team.logo ? String(team.logo).replace(/\\\//g, '/') : '';
+                console.log('Team logo:', team.name, cleanLogo);
+
+                return `
                 <tr class="border-b border-white/10 hover:bg-white/5">
                     <td class="p-3">
-                        <img src="${team.logo || ''}" alt="${team.name}" class="w-10 h-10 object-contain" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><text y=%2230%22 font-size=%2230%22>⚽</text></svg>'">
+                        <img src="${cleanLogo}" alt="${team.name}" class="w-10 h-10 object-contain" 
+                            onerror="this.onerror=null; this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22><text y=%2230%22 font-size=%2230%22>⚽</text></svg>'; console.error('Logo failed:', '${cleanLogo}');">
                     </td>
                     <td class="p-3 font-semibold">${team.name}</td>
                     <td class="p-3 text-sm text-white/70">${team.league || 'N/A'}</td>
@@ -215,7 +248,7 @@
                         </button>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         // Render users

@@ -1,10 +1,15 @@
 /**
- * Web App API - Takım Arama
- * TheSportsDB kullanıyor (ücretsiz, sınırsız)
+ * Web App API - Takım Ara
  */
 
-import { searchTeamsInCache } from '../../lib/db-cache.js';
 import { searchTeamSportsDB } from '../../lib/sportsdb-api.js';
+import { getCachedTeams } from '../../lib/db-cache.js';
+
+// URL temizleme fonksiyonu
+function cleanUrl(url) {
+    if (!url) return null;
+    return String(url).replace(/\\\//g, '/');
+}
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -18,50 +23,38 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'Query too short' });
         }
 
-        // 1. Önce Google Sheets cache'ine bak
-        let teams = await searchTeamsInCache(q);
+        // Önce cache'den ara
+        const cachedTeams = await getCachedTeams();
+        const cachedResults = cachedTeams.filter(team =>
+            team.name.toLowerCase().includes(q.toLowerCase())
+        );
 
-        // 2. Eğer cache'te bulunamadıysa (veya az bulunduysa) TheSportsDB'ye git
-        if (!teams || teams.length === 0) {
-            console.log('Cache miss, searching TheSportsDB...');
-            const results = await searchTeamSportsDB(q);
-            teams = results.slice(0, 10).map(team => ({
-                id: team.idTeam,
-                name: team.strTeam,
-                country: team.strCountry || 'N/A',
-                logo: team.strTeamBadge
+        // Cache'de bulunduysa direkt dön
+        if (cachedResults.length > 0) {
+            const teams = cachedResults.map(team => ({
+                id: parseInt(team.id),
+                name: team.name,
+                logo: cleanUrl(team.logo),
+                country: team.country,
+                league: team.league
             }));
+            return res.status(200).json({ teams, source: 'cache' });
         }
 
-        return res.status(200).json({ teams });
+        // Cache'de yoksa API'den ara
+        const apiResults = await searchTeamSportsDB(q);
+        const teams = apiResults.map(team => ({
+            id: parseInt(team.idTeam),
+            name: team.strTeam,
+            logo: cleanUrl(team.strTeamBadge),
+            country: team.strCountry,
+            league: team.strLeague
+        }));
+
+        return res.status(200).json({ teams, source: 'api' });
 
     } catch (error) {
         console.error('Search teams error:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
-}
-
-// Takım ikonları (emoji)
-function getTeamIcon(teamName) {
-    const icons = {
-        'besiktas': '🦅',
-        'beşiktaş': '🦅',
-        'galatasaray': '🦁',
-        'fenerbahce': '🐦',
-        'fenerbahçe': '🐦',
-        'trabzonspor': '⚡',
-        'basaksehir': '🔷',
-        'başakşehir': '🔷',
-        'barcelona': '🔵',
-        'real madrid': '⚪',
-        'manchester united': '🔴',
-        'liverpool': '🔴',
-        'bayern munich': '🔴'
-    };
-
-    const normalized = teamName.toLowerCase();
-    for (const [key, icon] of Object.entries(icons)) {
-        if (normalized.includes(key)) return icon;
-    }
-    return '⚽';
 }
