@@ -3,6 +3,7 @@
  */
 
 import { addTeam, removeTeam, getUserTeams, updateNotificationSettings } from '../../lib/user-teams.js';
+import { saveUser } from '../../lib/sheets.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -10,10 +11,15 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { userId, teams } = req.body;
+        const { userId, teams, user } = req.body;
 
         if (!userId || !teams) {
             return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        // Kullanıcı bilgisini kaydet
+        if (user) {
+            await saveUser(user);
         }
 
         // Mevcut takımları al

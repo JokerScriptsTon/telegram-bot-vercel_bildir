@@ -52,7 +52,11 @@ function App() {
             const res = await fetch('/api/webapp/save-teams', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: user.id, teams: selectedTeams })
+                body: JSON.stringify({
+                    userId: user.id,
+                    teams: selectedTeams,
+                    user: user  // Kullanıcı bilgisini de gönder
+                })
             });
             if (res.ok) tg.close();
         } catch (err) {
@@ -127,31 +131,51 @@ function App() {
     };
 
     return (
-        <div className="min-h-screen pb-24 text-slate-100 bg-[#0f172a]">
+        <div className="min-h-screen pb-24 text-slate-100">
             {/* Header */}
-            <header className="relative py-8 px-6 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-b-[40px] shadow-2xl overflow-hidden mb-6">
-                <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_50%_-20%,#ffffff,transparent)]" />
-                <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="relative z-10 text-center">
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Takım Yönetimi</h1>
-                    <p className="text-indigo-100/80 font-light">Favorilerini seç, bildirimleri yönet</p>
+            <header className="relative py-10 px-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 overflow-hidden mb-8">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(99,102,241,0.2),transparent_50%)]" />
+                <motion.div
+                    initial={{ y: -30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="relative z-10 text-center"
+                >
+                    <div className="inline-block mb-3 animate-float">
+                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto glow">
+                            <Star className="w-8 h-8 text-white fill-white" />
+                        </div>
+                    </div>
+                    <h1 className="text-4xl font-black tracking-tight mb-2 text-white drop-shadow-lg">
+                        Takım Yönetimi
+                    </h1>
+                    <p className="text-white/90 font-medium text-lg">
+                        Favorilerini seç, bildirimleri yönet
+                    </p>
                 </motion.div>
             </header>
 
-            <div className="px-5 space-y-8">
+            <div className="px-5 space-y-6 max-w-2xl mx-auto">
                 {/* Search */}
-                <section className="-mt-12 relative z-20">
-                    <div className="relative glass-premium rounded-2xl flex items-center px-4">
-                        <Search className="w-5 h-5 text-indigo-400 opacity-60" />
+                <motion.section
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="-mt-8 relative z-20"
+                >
+                    <div className="relative glass-premium rounded-3xl flex items-center px-5 py-1 glow">
+                        <Search className="w-5 h-5 text-indigo-300" />
                         <input
                             type="text"
                             placeholder="Dünya çapında takım ara..."
-                            className="w-full bg-transparent border-none py-4 px-3 focus:outline-none text-white placeholder:text-slate-500"
+                            className="w-full bg-transparent border-none py-4 px-3 focus:outline-none text-white placeholder:text-slate-400 font-medium"
                             value={searchTerm}
                             onChange={(e) => handleSearch(e.target.value)}
                         />
-                        {isSearching && <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent animate-spin rounded-full mr-2" />}
+                        {isSearching && <div className="w-5 h-5 border-2 border-indigo-400 border-t-transparent animate-spin rounded-full" />}
                     </div>
-                </section>
+                </motion.section>
 
                 {/* Search Results */}
                 {searchTerm.length >= 2 && (

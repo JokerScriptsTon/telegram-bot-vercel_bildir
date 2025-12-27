@@ -4,22 +4,51 @@
 
 @layer base {
   body {
-    @apply bg-tg-bg text-tg-text antialiased;
+    @apply bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-slate-100 antialiased;
   }
 }
 
 .glass {
-  @apply bg-black/5 backdrop-blur-md border border-white/10;
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
 }
 
 .glass-premium {
-  @apply bg-white/5 backdrop-blur-xl border border-white/20 shadow-2xl;
+  @apply bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl;
+}
+
+.glass-card {
+  @apply bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-lg border border-white/10;
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-500;
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400;
+}
+
+.glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+.glow-strong {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.5), 0 0 60px rgba(168, 85, 247, 0.3);
 }
 
 ::-webkit-scrollbar {
   width: 0px;
+}
+
+/* Animasyonlar */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
