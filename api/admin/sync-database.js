@@ -8,25 +8,25 @@ import { syncTeamsToSheet } from '../../lib/sheets.js';
 
 const POPULAR_LEAGUES = [
     'English Premier League',
-    'Spanish La Liga',
     'German Bundesliga',
+    'Spanish La Liga',
     'Italian Serie A',
     'French Ligue 1',
-    'Turkish Super League',
     'Dutch Eredivisie',
-    'Portuguese Primeira Liga',
     'Brazilian Serie A',
-    'Argentine Primera Division',
+    'Portuguese Primeira Liga',
+    'Mexican Liga MX',
+    'Turkish Super League',
     'UEFA Champions League',
     'UEFA Europa League',
-    'Mexican Liga MX',
+    'UEFA Europa Conference League',
+    'Copa Libertadores',
+    'Copa Sudamericana',
+    'FIFA World Cup',
     'American MLS',
     'Saudi Pro League',
     'Belgian Pro League',
-    'Scottish Premiership',
-    'Greek Super League',
-    'Russian Premier League',
-    'Austrian Bundesliga'
+    'Scottish Premiership'
 ];
 
 export default async function handler(req, res) {
