@@ -3,6 +3,7 @@
  * TheSportsDB kullanıyor (ücretsiz)
  */
 
+import { getLeagueTeamsFromCache } from '../../lib/db-cache.js';
 import { getLeagueTeams } from '../../lib/sportsdb-api.js';
 
 export default async function handler(req, res) {
@@ -17,17 +18,20 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: 'League name required' });
         }
 
-        // Lig takımlarını al
-        const results = await getLeagueTeams(league);
+        // 1. Önce Google Sheets cache'inden al
+        let teams = await getLeagueTeamsFromCache(league);
 
-        // Sonuçları formatla
-        const teams = results.map(team => ({
-            id: team.idTeam,
-            name: team.strTeam,
-            icon: '⚽',
-            country: team.strCountry || 'N/A',
-            logo: team.strTeamBadge
-        }));
+        // 2. Cache boşsa API'den çek
+        if (!teams || teams.length === 0) {
+            console.log(`Cache miss for league: ${league}. Fetching from API...`);
+            const results = await getLeagueTeams(league);
+            teams = results.map(team => ({
+                id: team.idTeam,
+                name: team.strTeam,
+                country: team.strCountry || 'N/A',
+                logo: team.strTeamBadge
+            }));
+        }
 
         return res.status(200).json({ teams });
 

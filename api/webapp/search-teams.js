@@ -3,7 +3,8 @@
  * TheSportsDB kullanıyor (ücretsiz, sınırsız)
  */
 
-import { searchTeamSportsDB, getTeamLogo } from '../../lib/sportsdb-api.js';
+import { searchTeamsInCache } from '../../lib/db-cache.js';
+import { searchTeamSportsDB } from '../../lib/sportsdb-api.js';
 
 export default async function handler(req, res) {
     if (req.method !== 'GET') {
@@ -11,23 +12,26 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { q, userId } = req.query;
+        const { q } = req.query;
 
         if (!q || q.length < 2) {
             return res.status(400).json({ error: 'Query too short' });
         }
 
-        // TheSportsDB'den takım ara (ücretsiz!)
-        const results = await searchTeamSportsDB(q);
+        // 1. Önce Google Sheets cache'ine bak
+        let teams = await searchTeamsInCache(q);
 
-        // Sonuçları formatla
-        const teams = results.slice(0, 10).map(team => ({
-            id: team.idTeam,
-            name: team.strTeam,
-            icon: getTeamIcon(team.strTeam),
-            country: team.strCountry || team.strLeague || 'N/A',
-            logo: team.strTeamBadge // Logo URL'i ekle
-        }));
+        // 2. Eğer cache'te bulunamadıysa (veya az bulunduysa) TheSportsDB'ye git
+        if (!teams || teams.length === 0) {
+            console.log('Cache miss, searching TheSportsDB...');
+            const results = await searchTeamSportsDB(q);
+            teams = results.slice(0, 10).map(team => ({
+                id: team.idTeam,
+                name: team.strTeam,
+                country: team.strCountry || 'N/A',
+                logo: team.strTeamBadge
+            }));
+        }
 
         return res.status(200).json({ teams });
 

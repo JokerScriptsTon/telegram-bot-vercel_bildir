@@ -168,8 +168,19 @@ function App() {
                                 <div key={team.id} className="glass-premium rounded-[24px] overflow-hidden">
                                     <div className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10">
-                                                <img src={team.logo || '⚽'} className="w-10 h-10 object-contain" onError={(e) => e.target.src = '⚽'} />
+                                            <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 overflow-hidden relative">
+                                                {team.logo ? (
+                                                    <img
+                                                        src={team.logo}
+                                                        className="w-10 h-10 object-contain relative z-10"
+                                                        alt={team.name}
+                                                        onError={(e) => {
+                                                            e.target.style.display = 'none';
+                                                            e.target.nextElementSibling.style.display = 'block';
+                                                        }}
+                                                    />
+                                                ) : null}
+                                                <span className={`text-2xl ${team.logo ? 'hidden' : 'block'}`}>⚽</span>
                                             </div>
                                             <div>
                                                 <h3 className="font-semibold text-slate-100 leading-tight">{team.name}</h3>
@@ -262,12 +273,19 @@ function TeamCard({ team, isSelected, onToggle }) {
             onClick={onToggle}
             className={`p-4 rounded-3xl flex items-center gap-4 transition-all duration-300 border ${isSelected ? 'bg-indigo-600/10 border-indigo-500/40 opacity-100' : 'glass border-white/5 opacity-80'}`}
         >
-            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 flex-shrink-0">
-                <img
-                    src={team.logo || '⚽'}
-                    className="w-10 h-10 object-contain"
-                    onError={(e) => e.target.src = '⚽'}
-                />
+            <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 flex-shrink-0 overflow-hidden relative">
+                {team.logo ? (
+                    <img
+                        src={team.logo}
+                        className="w-10 h-10 object-contain relative z-10"
+                        alt={team.name}
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextElementSibling.style.display = 'block';
+                        }}
+                    />
+                ) : null}
+                <span className={`text-2xl ${team.logo ? 'hidden' : 'block'}`}>⚽</span>
             </div>
             <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm text-slate-100 truncate">{team.name}</h3>
