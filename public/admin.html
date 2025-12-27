@@ -150,6 +150,45 @@
         </div>
     </div>
 
+    <!-- Edit Team Modal -->
+    <div id="editModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
+        <div class="glass rounded-2xl p-6 max-w-md w-full mx-4 glow">
+            <h2 class="text-2xl font-bold text-white mb-4">✏️ Takım Düzenle</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-white text-sm mb-1 block">Takım Adı</label>
+                    <input type="text" id="editName"
+                        class="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-white/40">
+                </div>
+                <div>
+                    <label class="text-white text-sm mb-1 block">Logo URL</label>
+                    <input type="text" id="editLogo"
+                        class="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-white/40">
+                </div>
+                <div>
+                    <label class="text-white text-sm mb-1 block">Lig</label>
+                    <input type="text" id="editLeague"
+                        class="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-white/40">
+                </div>
+                <div>
+                    <label class="text-white text-sm mb-1 block">Ülke</label>
+                    <input type="text" id="editCountry"
+                        class="w-full px-4 py-2 rounded-lg bg-white/10 text-white border border-white/20 focus:outline-none focus:border-white/40">
+                </div>
+                <div class="flex gap-2 mt-6">
+                    <button onclick="saveEdit()"
+                        class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold">
+                        Kaydet
+                    </button>
+                    <button onclick="closeEditModal()"
+                        class="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold">
+                        İptal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let allTeams = [];
         let allUsers = [];
@@ -243,9 +282,15 @@
                     <td class="p-3 text-sm text-white/70">${team.league || 'N/A'}</td>
                     <td class="p-3 text-sm text-white/70">${team.country || 'N/A'}</td>
                     <td class="p-3">
-                        <button onclick="deleteTeam('${team.id}')" class="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded">
-                            Sil
-                        </button>
+                        <div class="flex gap-2">
+                            <button onclick="openEditModal('${team.id}', '${team.name.replace(/'/g, "\\'")}', '${cleanLogo}', '${team.league || ''}', '${team.country || ''}')" 
+                                class="px-3 py-1 bg-blue-500/20 hover:bg-blue-500/40 text-blue-200 rounded">
+                                Düzenle
+                            </button>
+                            <button onclick="deleteTeam('${team.id}')" class="px-3 py-1 bg-red-500/20 hover:bg-red-500/40 text-red-200 rounded">
+                                Sil
+                            </button>
+                        </div>
                     </td>
                 </tr>
             `}).join('');
@@ -385,6 +430,53 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🔄 Veritabanını Senkronize Et';
+            }
+        }
+
+        // Edit modal functions
+        let currentEditId = null;
+
+        function openEditModal(id, name, logo, league, country) {
+            currentEditId = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editLogo').value = logo;
+            document.getElementById('editLeague').value = league;
+            document.getElementById('editCountry').value = country;
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        }
+
+        function closeEditModal() {
+            currentEditId = null;
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+        }
+
+        async function saveEdit() {
+            if (!currentEditId) return;
+
+            const name = document.getElementById('editName').value;
+            const logo = document.getElementById('editLogo').value;
+            const league = document.getElementById('editLeague').value;
+            const country = document.getElementById('editCountry').value;
+
+            try {
+                const res = await fetch('/api/admin/update-team', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: currentEditId, name, logo, league, country })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert('Takım güncellendi!');
+                    closeEditModal();
+                    loadData();
+                } else {
+                    alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
+                }
+            } catch (err) {
+                alert('Hata: ' + err.message);
             }
         }
 
